@@ -16,7 +16,7 @@ type handleCron struct {
 
 func (this *handleCron) initConf() {
 	v := viper.New()
-	v.SetConfigFile("./conf/app.yaml.demo")
+	v.SetConfigFile("./conf/app.yaml")
 	//////以下方式2
 	//v.AddConfigPath("./conf")
 	//v.SetConfigName("app")
@@ -63,7 +63,7 @@ func (this *handleCron) Run() {
 					for _, v2 := range v {
 						hashes = append(hashes, v2)
 					}
-					println(k+"\r\n", strings.Join(hashes, "\r\n"))
+					println(k + "\r\n")
 
 				}
 			}

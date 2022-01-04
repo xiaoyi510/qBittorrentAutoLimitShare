@@ -76,6 +76,9 @@ func (this *QbitClient) Get(url string, data interface{}) (string, int) {
 
 	response, err := this.httpClient.Do(request)
 	if err != nil {
+		if response == nil {
+			return err.Error(), -1
+		}
 		return err.Error(), response.StatusCode
 	}
 	defer response.Body.Close()
@@ -117,6 +120,9 @@ func (this *QbitClient) Post(url string, data interface{}) (string, int) {
 
 	response, err := this.httpClient.Do(request)
 	if err != nil {
+		if response == nil {
+			return err.Error(), -1
+		}
 		return err.Error(), response.StatusCode
 	}
 

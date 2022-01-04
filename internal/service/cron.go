@@ -16,7 +16,6 @@ var ServiceCron *serviceCron
 
 func init() {
 	ServiceCron = &serviceCron{}
-	ServiceCron.Init()
 }
 
 type serviceCron struct {
@@ -54,6 +53,7 @@ func (this *serviceCron) GetSync() *api.Sync {
 
 func (this *serviceCron) SetConf(conf *viper.Viper) *serviceCron {
 	this.conf = conf
+	this.Init()
 	return this
 }
 
