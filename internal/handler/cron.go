@@ -46,7 +46,8 @@ func (this *handleCron) Run() {
 	go func() {
 		for {
 			// 获取信任的tracker列表
-			trust_trackers := this.conf.Get("trust_trackers")
+			trust_trackers := this.conf.Get("trust_trackers").(string)
+			trustTrackersArr := strings.Split(trust_trackers, " ")
 
 			// 获取种子tracker列表
 
@@ -57,15 +58,25 @@ func (this *handleCron) Run() {
 
 			// 判断哪些tracker不是信任的
 			for k, v := range s.Trackers {
-				if strings.Index(k, trust_trackers.(string)) == -1 {
+				hasTrust := false
+				for _, trustUrl := range trustTrackersArr {
+					if strings.Index(k, trustUrl) != -1 && len(trustUrl) > 0 {
+						hasTrust = true
+						break
+					}
+				}
+				if !hasTrust {
+					//>> 没有在信任列表
 					//>> 判断 v 中是否已处理分享率
 					var hashes []string
 					for _, v2 := range v {
 						hashes = append(hashes, v2)
 					}
-					println(k + "\r\n")
+					//>> 通知设置分享率
 
+					println(k + "\r\n")
 				}
+
 			}
 
 			// 间隔扫描时间

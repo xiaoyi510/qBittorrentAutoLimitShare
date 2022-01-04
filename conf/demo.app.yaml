@@ -1,0 +1,24 @@
+qbit_upload_radio: "1.0"
+qbit_upload_time: "-1"
+qbit_server:
+  cookie: ""
+  url: ""
+  port: ""
+  ssl: "1"
+  username: ""
+  password: ""
+trust_trackers: "tracker.hdtime.org/announce.php
+hdfans.org/announce.php
+tracker.torrentleech.org
+announce.leaguehd.com/announce.php
+ptsbao.club/announce.php
+hdatmos.club/announce.php
+tracker.m-team.cc
+daydream.dmhy.best/announc
+announce.haidan.video/announce.php
+tp.m-team.cc/announce.php
+tp.msg.vg/announce.php
+pt.btschool.club/announce.php
+www.hdarea.co/announce.php
+tracker.avgv.cc/announce.php
+"

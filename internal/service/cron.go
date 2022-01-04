@@ -24,13 +24,13 @@ type serviceCron struct {
 }
 
 func (this *serviceCron) Init() {
-	this.client = qbit.Qbit.Client.Init(this.conf.GetString("qbit_url"), this.conf.GetString("qbit_port"), this.conf.GetString("qbit_ssl") == "1")
+	this.client = qbit.Qbit.Client.Init(this.conf.GetString("qbit_server.url"), this.conf.GetString("qbit_server.port"), this.conf.GetString("qbit_server.ssl") == "1")
 }
 
 // 第一次运行 同步所有的数据
 func (this *serviceCron) Login() error {
 	//>> 登录获取Cookie
-	res := this.GetAuth().Login(this.conf.GetString("qbit_username"), this.conf.GetString("qbit_password"))
+	res := this.GetAuth().Login(this.conf.GetString("qbit_server.username"), this.conf.GetString("qbit_server.password"))
 	if res == "Ok." {
 		return nil
 	}
@@ -59,7 +59,7 @@ func (this *serviceCron) SetConf(conf *viper.Viper) *serviceCron {
 
 // CheckCookie 判断cookie是否可用
 func (this *serviceCron) CheckCookie() bool {
-	cookie := this.conf.Get("qbit_cookie").(string)
+	cookie := this.conf.Get("qbit_server.cookie").(string)
 	if len(cookie) <= 0 {
 		return false
 	}
