@@ -1,0 +1,2 @@
+# qBittorrentAutoLimitShare
+qBittorrent 自动限制非信任tracker分享率
