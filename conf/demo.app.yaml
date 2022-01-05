@@ -4,6 +4,8 @@ qbit_upload_radio: "1.0"
 qbit_upload_time: "-1"
 # 检测跳过多少天以前的种子
 qbit_skill_max_complete_time: "1"
+# 扫描间隔时间单位s
+qbit_scan_time: "10"
 # qBit服务器设置
 qbit_server:
   # 可以直接填写cookie SID=xx;
