@@ -105,7 +105,7 @@ func (this *handleCron) Run() {
 				hashes = RemoveRepeatedElement(hashes)
 
 				// 分段处理
-				list := ArraySplit(hashes, 5)
+				list := ArraySplit(hashes, 6)
 
 				for _, v := range list {
 					err, _ := service.ServiceCron.GetTorrents().SetShareLimits(v, torrents.ApiTorrentSetShareLimitsReq{
