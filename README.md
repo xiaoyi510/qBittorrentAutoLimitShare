@@ -3,13 +3,43 @@
 qBittorrent Web Api Auto Set Upload Limit
 
 ### 配置项
-trust_trackers 信任tracker 一行一个
-
-qbit_cookie qbit cookie
-
-qbit_upload_radio 不信任tracker分享率设置
-
-qbit_upload_time 不信任tracker对应种子分享上传设置
+```yaml
+# 限制上传分享率
+qbit_upload_radio: "1.0"
+# 限制上传分享时间
+qbit_upload_time: "-1"
+# 检测跳过多少天以前的种子
+qbit_skill_max_complete_time: "1"
+# qBit服务器设置
+qbit_server:
+  # 可以直接填写cookie SID=xx;
+  cookie: ""
+  # qBit服务器域名/IP
+  url: ""
+  # qBit WebUI端口号
+  port: ""
+  # qBit 是否为ssl
+  ssl: "1"
+  # qBit 账号密码
+  username: ""
+  password: ""
+# 信任的tracker 不处理限制上传分享率
+trust_trackers: "tracker.hdtime.org/announce.php
+hdfans.org/announce.php
+tracker.torrentleech.org
+announce.leaguehd.com/announce.php
+ptsbao.club/announce.php
+hdatmos.club/announce.php
+tracker.m-team.cc
+daydream.dmhy.best/announc
+announce.haidan.video/announce.php
+tp.m-team.cc/announce.php
+tp.msg.vg/announce.php
+pt.btschool.club/announce.php
+www.hdarea.co/announce.php
+tracker.avgv.cc/announce.php
+"
+```
 
 
 ### API 完成度
