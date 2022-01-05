@@ -1,6 +1,11 @@
 # qBittorrentAutoLimitShare
 
-qBittorrent Web Api Auto Set Upload Limit
+可用于PT下载和其他非PT站下载管理分享率
+
+一般情况下PT要保种 不限制分享率
+
+但是其他BT下载网站则需要限制分享率= =不过你的资源够也无所谓
+
 
 ### 配置项
 ```yaml

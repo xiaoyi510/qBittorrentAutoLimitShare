@@ -15,6 +15,7 @@ type QbitClient struct {
 	conf       model.ModelQbit
 	httpClient *http.Client
 	jar        http.CookieJar
+	cookies    []*http.Cookie
 }
 
 // Init 初始化
@@ -129,7 +130,7 @@ func (this *QbitClient) Post(url string, data interface{}) (string, int) {
 	if err != nil {
 		return err.Error(), response.StatusCode
 	}
-
+	this.cookies = response.Cookies()
 	return string(body), response.StatusCode
 }
 
@@ -153,4 +154,12 @@ func (this *QbitClient) SetCookie(cookie []*http.Cookie) *QbitClient {
 	}
 	this.httpClient.Jar.SetCookies(cookieUrl, cookie)
 	return this
+}
+
+func (this *QbitClient) GetCookie() string {
+	var ret string
+	for _, v := range this.cookies {
+		ret += v.Name + "=" + v.Value + "; "
+	}
+	return ret
 }

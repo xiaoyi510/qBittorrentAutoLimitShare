@@ -30,8 +30,14 @@ func (this *serviceCron) Init() {
 // 第一次运行 同步所有的数据
 func (this *serviceCron) Login() error {
 	//>> 登录获取Cookie
-	res := this.GetAuth().Login(this.conf.GetString("qbit_server.username"), this.conf.GetString("qbit_server.password"))
+	res, ck := this.GetAuth().Login(this.conf.GetString("qbit_server.username"), this.conf.GetString("qbit_server.password"))
 	if res == "Ok." {
+		//>> 写出Cookie
+		this.conf.Set("qbit_server.cookie", ck)
+		err := this.conf.WriteConfig()
+		if err != nil {
+			return err
+		}
 		return nil
 	}
 	return errors.New("登录失败:" + res)

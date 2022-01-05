@@ -17,14 +17,17 @@ type handleCron struct {
 
 func (this *handleCron) initConf() {
 	v := viper.New()
-	v.SetConfigFile("./conf/app.yaml")
+	v.AddConfigPath("./conf")
+	v.SetConfigType("yaml")
+	//v.SetConfigFile("app")
+	v.SetConfigName("app")
+
+	//missing configuration for 'configPath'
 	//////以下方式2
 	//v.AddConfigPath("./conf")
-	//v.SetConfigName("app")
-	//v.SetConfigType("yaml")
 	err := v.ReadInConfig()
 	if err != nil {
-		log.Fatal("read config failed: %v", err)
+		log.Fatal("读取配置失败: ", err.Error())
 	}
 	v.WatchConfig()
 	this.conf = v
@@ -34,27 +37,32 @@ func (this *handleCron) Run() {
 	// 设置配置项
 	service.ServiceCron.SetConf(this.conf)
 
+	log.Println("初始化完成,开始检测Cookie")
+
 	// 判断缓存是否可用
 	if service.ServiceCron.CheckCookie() == false {
+		log.Println("Cookie无效 开始使用账号密码登录")
 		err := service.ServiceCron.Login()
 		if err != nil {
-			panic(err)
+			log.Panicln("登录失败", err)
 		}
 	}
+	log.Println("登录完成")
 
 	// 登录成功
 	// 开始监听
 	go func() {
 		for {
+			log.Println("开始扫描")
 			// 获取信任的tracker列表
-			trust_trackers := this.conf.Get("trust_trackers").(string)
+			trustTrackers := this.conf.Get("trust_trackers").(string)
 			// 获取种子监控最长时间
 			skillMaxCompleteTime := 24 * 60 * 60 * this.conf.GetInt("qbit_skill_max_complete_time")
 			// 获取配置的上传限制
 			SeedingTimeLimit := this.conf.GetInt("qbit_upload_time")
 			RatioLimit := this.conf.GetFloat64("qbit_upload_radio")
 
-			trustTrackersArr := strings.Split(trust_trackers, " ")
+			trustTrackersArr := strings.Split(trustTrackers, " ")
 
 			// 获取种子tracker列表
 
@@ -102,7 +110,17 @@ func (this *handleCron) Run() {
 			}
 
 			// 间隔扫描时间
-			time.Sleep(time.Second * 10)
+			limitTime := this.conf.GetDuration("qbit_scan_time")
+			if limitTime == 0 {
+				this.conf.Set("qbit_scan_time", "10")
+				err := this.conf.WriteConfig()
+				if err != nil {
+					log.Println("写入配置失败,请注意配置文件权限")
+				}
+				limitTime = 10
+			}
+			log.Println("开始等待下一轮 等待", int(limitTime), "s")
+			time.Sleep(time.Second * limitTime)
 		}
 	}()
 	for {
