@@ -1,5 +1,6 @@
 qbit_upload_radio: "1.0"
 qbit_upload_time: "-1"
+qbit_skill_max_complete_time: "1"
 qbit_server:
   cookie: ""
   url: ""

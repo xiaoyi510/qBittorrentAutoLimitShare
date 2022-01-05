@@ -93,7 +93,7 @@ func (this *QbitClient) Get(url string, data interface{}) (string, int) {
 func (this *QbitClient) Post(url string, data interface{}) (string, int) {
 	tmpDataMap, _ := json.Marshal(data)
 
-	dataMap := make(map[string]string)
+	dataMap := make(map[string]interface{})
 	err := json.Unmarshal(tmpDataMap, &dataMap)
 	if err != nil {
 		return err.Error(), 0
@@ -106,12 +106,10 @@ func (this *QbitClient) Post(url string, data interface{}) (string, int) {
 
 	form := url2.Values{}
 	for k, v := range dataMap {
-		form.Add(k, v)
+		form.Add(k, fmt.Sprintf("%v", v))
 	}
-
 	fmt.Println(form.Encode())
 	///////////////////////////
-
 	request, err := http.NewRequest("POST", url, strings.NewReader(form.Encode()))
 	if err != nil {
 		return err.Error(), 0

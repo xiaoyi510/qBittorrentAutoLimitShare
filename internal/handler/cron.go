@@ -1,6 +1,7 @@
 package handler
 
 import (
+	"QbittorrentAutoLimitShare/internal/model/qbit/torrents"
 	"QbittorrentAutoLimitShare/internal/service"
 	"github.com/spf13/viper"
 	"log"
@@ -47,6 +48,12 @@ func (this *handleCron) Run() {
 		for {
 			// 获取信任的tracker列表
 			trust_trackers := this.conf.Get("trust_trackers").(string)
+			// 获取种子监控最长时间
+			skillMaxCompleteTime := 24 * 60 * 60 * this.conf.GetInt("qbit_skill_max_complete_time")
+			// 获取配置的上传限制
+			SeedingTimeLimit := this.conf.GetInt("qbit_upload_time")
+			RatioLimit := this.conf.GetFloat64("qbit_upload_radio")
+
 			trustTrackersArr := strings.Split(trust_trackers, " ")
 
 			// 获取种子tracker列表
@@ -69,12 +76,27 @@ func (this *handleCron) Run() {
 					//>> 没有在信任列表
 					//>> 判断 v 中是否已处理分享率
 					var hashes []string
+					var hashNames string
 					for _, v2 := range v {
-						hashes = append(hashes, v2)
+						// 查看种子是否超过监控时间
+						a := int(time.Now().Unix() - int64(skillMaxCompleteTime))
+						if s.Torrents[v2].CompletionOn > a {
+							hashes = append(hashes, v2)
+							hashNames = hashNames + "\r\n" + s.Torrents[v2].Name
+						}
 					}
 					//>> 通知设置分享率
-
-					println(k + "\r\n")
+					if len(hashes) > 0 {
+						err, _ := service.ServiceCron.GetTorrents().SetShareLimits(hashes, torrents.ApiTorrentSetShareLimitsReq{
+							SeedingTimeLimit: SeedingTimeLimit,
+							RatioLimit:       RatioLimit,
+						})
+						if err != nil {
+							log.Println("设置分享率失败", err.Error())
+						} else {
+							log.Println("设置分享率成功", hashNames)
+						}
+					}
 				}
 
 			}
