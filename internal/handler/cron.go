@@ -102,7 +102,7 @@ func (this *handleCron) Run() {
 						if err != nil {
 							log.Println("设置分享率失败", err.Error())
 						} else {
-							log.Println("设置分享率成功", hashNames)
+							log.Println("设置分享率成功 共:", len(hashes))
 						}
 					}
 				}
