@@ -69,7 +69,7 @@ func (this *QbitClient) Get(url string, data interface{}) (string, int) {
 	fmt.Println(string(dataMap))
 
 	url = this.GetHost() + "/" + url
-	fmt.Println("[GET] Url:" + url)
+	//fmt.Println("[GET] Url:" + url)
 	request, err := http.NewRequest("GET", url, nil)
 	if err != nil {
 		return err.Error(), 0
@@ -101,7 +101,7 @@ func (this *QbitClient) Post(url string, data interface{}) (string, int) {
 	}
 
 	url = this.GetHost() + "/" + url
-	fmt.Println("[POST] Url:" + url)
+	//fmt.Println("[POST] Url:" + url)
 
 	///////////////////////////
 

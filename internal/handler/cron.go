@@ -5,6 +5,7 @@ import (
 	"QbittorrentAutoLimitShare/internal/service"
 	"github.com/spf13/viper"
 	"log"
+	"math"
 	"strings"
 	"time"
 )
@@ -65,11 +66,13 @@ func (this *handleCron) Run() {
 			trustTrackersArr := strings.Split(trustTrackers, " ")
 
 			// 获取种子tracker列表
-
 			err, s := service.ServiceCron.GetSync().Maindata()
 			if err != nil {
 				return
 			}
+
+			// 定义需要处理的种子列表
+			var hashes []string
 
 			// 判断哪些tracker不是信任的
 			for k, v := range s.Trackers {
@@ -83,30 +86,38 @@ func (this *handleCron) Run() {
 				if !hasTrust {
 					//>> 没有在信任列表
 					//>> 判断 v 中是否已处理分享率
-					var hashes []string
-					var hashNames string
+					//var hashNames string
 					for _, v2 := range v {
 						// 查看种子是否超过监控时间
 						a := int(time.Now().Unix() - int64(skillMaxCompleteTime))
 						if s.Torrents[v2].CompletionOn > a {
 							hashes = append(hashes, v2)
-							hashNames = hashNames + "\r\n" + s.Torrents[v2].Name
-						}
-					}
-					//>> 通知设置分享率
-					if len(hashes) > 0 {
-						err, _ := service.ServiceCron.GetTorrents().SetShareLimits(hashes, torrents.ApiTorrentSetShareLimitsReq{
-							SeedingTimeLimit: SeedingTimeLimit,
-							RatioLimit:       RatioLimit,
-						})
-						if err != nil {
-							log.Println("设置分享率失败", err.Error())
-						} else {
-							log.Println("设置分享率成功 共:", len(hashes))
+							//hashNames = hashNames + "\r\n" + s.Torrents[v2].Name
 						}
 					}
 				}
 
+			}
+
+			//>> 通知设置分享率
+			if len(hashes) > 0 {
+				// 去重
+				hashes = RemoveRepeatedElement(hashes)
+
+				// 分段处理
+				list := ArraySplit(hashes, 5)
+
+				for _, v := range list {
+					err, _ := service.ServiceCron.GetTorrents().SetShareLimits(v, torrents.ApiTorrentSetShareLimitsReq{
+						SeedingTimeLimit: SeedingTimeLimit,
+						RatioLimit:       RatioLimit,
+					})
+					if err != nil {
+						log.Println("设置分享率失败", err.Error())
+					} else {
+						log.Println("设置分享率成功 共:", len(v))
+					}
+				}
 			}
 
 			// 间隔扫描时间
@@ -127,4 +138,39 @@ func (this *handleCron) Run() {
 		// 外部监听避免掉线
 		time.Sleep(time.Second * 10)
 	}
+}
+
+func RemoveRepeatedElement(arr []string) (newArr []string) {
+	newArr = make([]string, 0)
+	for i := 0; i < len(arr); i++ {
+		repeat := false
+		for j := i + 1; j < len(arr); j++ {
+			if arr[i] == arr[j] {
+				repeat = true
+				break
+			}
+		}
+		if !repeat {
+			newArr = append(newArr, arr[i])
+		}
+	}
+	return
+}
+
+func ArraySplit(arr []string, splitCount int) [][]string {
+	arrLen := int(math.Ceil(float64(len(arr)) / float64(splitCount)))
+	i := 1
+	var ret [][]string
+	for i <= arrLen {
+		// 计算开始裁剪位置
+		left := (i - 1) * splitCount
+		right := left + splitCount
+		// 如果右边限定值超出总数 则修改到最右侧
+		if right > len(arr) {
+			right = len(arr)
+		}
+		ret = append(ret, arr[left:right])
+		i++
+	}
+	return ret
 }
