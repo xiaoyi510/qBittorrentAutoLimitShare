@@ -109,7 +109,7 @@ func (this *QbitClient) Post(url string, data interface{}) (string, int) {
 	for k, v := range dataMap {
 		form.Add(k, fmt.Sprintf("%v", v))
 	}
-	fmt.Println(form.Encode())
+	//fmt.Println(form.Encode())
 	///////////////////////////
 	request, err := http.NewRequest("POST", url, strings.NewReader(form.Encode()))
 	if err != nil {

@@ -158,6 +158,9 @@ func RemoveRepeatedElement(arr []string) (newArr []string) {
 }
 
 func ArraySplit(arr []string, splitCount int) [][]string {
+	if len(arr) == 0 || splitCount <= 0 {
+		return nil
+	}
 	arrLen := int(math.Ceil(float64(len(arr)) / float64(splitCount)))
 	i := 1
 	var ret [][]string
