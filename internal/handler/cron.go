@@ -113,7 +113,6 @@ func (this *handleCron) Run() {
 							}
 
 							if tmpTime > minScanTime {
-								log.Println("种子已加入限制:" + s.Torrents[v2].Name)
 								hashes = append(hashes, v2)
 							}
 
@@ -132,6 +131,10 @@ func (this *handleCron) Run() {
 				list := ArraySplit(hashes, 6)
 
 				for _, v := range list {
+					for _, v2 := range v {
+						log.Println("种子已加入限制:" + s.Torrents[v2].Name)
+					}
+
 					err, _ := service.ServiceCron.GetTorrents().SetShareLimits(v, torrents.ApiTorrentSetShareLimitsReq{
 						SeedingTimeLimit: SeedingTimeLimit,
 						RatioLimit:       RatioLimit,
