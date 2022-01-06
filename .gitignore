@@ -16,3 +16,4 @@
 .idea/
 conf/app.yaml
 dist/
+/github_token
