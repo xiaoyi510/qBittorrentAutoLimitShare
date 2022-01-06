@@ -6,7 +6,8 @@ import (
 	"QbittorrentAutoLimitShare/internal/service"
 	"github.com/spf13/viper"
 	"log"
-	"math"
+	"os"
+	"strconv"
 	"strings"
 	"time"
 )
@@ -35,29 +36,30 @@ func (this *handleCron) initConf() {
 	this.conf = v
 }
 func (this *handleCron) Run() {
+	// 初始化配置项
 	this.initConf()
+	println(">>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>\n\n欢迎使用qBit 自动限制分享率工具 \r\n\r\nBy:包子 Blog:https://blog.52nyg.com\r\n\r\n>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>")
 	// 设置配置项
 	service.ServiceCron.SetConf(this.conf)
 
-	log.Println("初始化完成,开始检测Cookie")
-
-	// 判断缓存是否可用
-	if service.ServiceCron.CheckCookie() == false {
-		log.Println("Cookie无效 开始使用账号密码登录")
-		err := service.ServiceCron.Login()
-		if err != nil {
-			log.Panicln("登录失败", err)
-		}
+	// 判断是否登录成功
+	if service.ServiceCron.IsLogin == false {
+		// 没有登录成功则结束
+		os.Exit(0)
 	}
-	log.Println("登录完成")
 
-	// 登录成功
 	// 开始监听
 	go func() {
+		var runCount int64
 		for {
-			log.Println("开始扫描")
+			runCount++
+			log.Println("======================================")
+			log.Println("开始扫描 第" + strconv.FormatInt(runCount, 10) + "次")
 			// 获取信任的tracker列表
 			trustTrackers := this.conf.Get("trust_trackers").(string)
+			// 分割信任的Tracker
+			trustTrackersArr := strings.Split(trustTrackers, " ")
+
 			// 获取种子监控最长时间
 			skillMaxCompleteTime := 24 * 60 * 60 * this.conf.GetInt("qbit_skill_max_complete_time")
 			// 获取种子检测时间类型
@@ -67,14 +69,13 @@ func (this *handleCron) Run() {
 			}
 
 			// 获取配置的上传限制
-			SeedingTimeLimit := this.conf.GetInt("qbit_upload_time")
-			RatioLimit := this.conf.GetFloat64("qbit_upload_radio")
+			SeedingTimeLimit := this.conf.GetInt("qbit_upload_time") // 上传时间
+			RatioLimit := this.conf.GetFloat64("qbit_upload_radio")  // 分享率
 
-			trustTrackersArr := strings.Split(trustTrackers, " ")
-
-			// 获取种子tracker列表
+			// 获取种子列表
 			err, s := service.ServiceCron.GetSync().Maindata()
 			if err != nil {
+				log.Println("获取种子列表失败", err)
 				return
 			}
 
@@ -96,22 +97,15 @@ func (this *handleCron) Run() {
 				if !hasTrust {
 					//>> 没有在信任列表
 					//>> 判断 v 中是否已处理分享率
-					//var hashNames string
 					for _, v2 := range v {
 						// 如果种子未限制比例|时间 并且有需要设置比例 则处理  已手动限制比例则不处理
 						if (s.Torrents[v2].RatioLimit <= 0 && RatioLimit != -1) || (s.Torrents[v2].SeedingTimeLimit <= 0 && SeedingTimeLimit != -1) {
 							// 获取种子最低监控时间
 							minScanTime := int(time.Now().Unix() - int64(skillMaxCompleteTime))
-							// 判断时间类型
-							var tmpTime int
-							if checkTimeType == consts.SCAN_TIME_TYPE_AC {
-								tmpTime = s.Torrents[v2].LastActivity
-							} else if checkTimeType == consts.SCAN_TIME_TYPE_ADD {
-								tmpTime = s.Torrents[v2].AddedOn
-							} else {
-								tmpTime = s.Torrents[v2].CompletionOn
-							}
 
+							// 获取判断时间
+							tmpTime := service.ServiceCron.GetTimeForType(checkTimeType, s.Torrents[v2])
+							// 判断时间类型
 							if tmpTime > minScanTime {
 								hashes = append(hashes, v2)
 							}
@@ -125,16 +119,17 @@ func (this *handleCron) Run() {
 			//>> 通知设置分享率
 			if len(hashes) > 0 {
 				// 去重
-				hashes = RemoveRepeatedElement(hashes)
+				hashes = service.ServiceHelper.RemoveRepeatedElement(hashes)
 
 				// 分段处理避免过多
-				list := ArraySplit(hashes, 6)
+				list := service.ServiceHelper.ArraySplit(hashes, 6)
 
 				for _, v := range list {
+					log.Println("种子已加入分享限制:")
 					for _, v2 := range v {
-						log.Println("种子已加入限制:" + s.Torrents[v2].Name)
+						log.Println(s.Torrents[v2].Name)
 					}
-
+					// 通知设置分享率
 					err, _ := service.ServiceCron.GetTorrents().SetShareLimits(v, torrents.ApiTorrentSetShareLimitsReq{
 						SeedingTimeLimit: SeedingTimeLimit,
 						RatioLimit:       RatioLimit,
@@ -148,17 +143,12 @@ func (this *handleCron) Run() {
 			}
 
 			// 间隔扫描时间
-			limitTime := this.conf.GetDuration("qbit_scan_time")
-			if limitTime == 0 {
-				this.conf.Set("qbit_scan_time", "10")
-				err := this.conf.WriteConfig()
-				if err != nil {
-					log.Println("写入配置失败,请注意配置文件权限")
-				}
-				limitTime = 10
-			}
-			log.Println("开始等待下一轮 等待", int(limitTime), "s")
-			time.Sleep(time.Second * limitTime)
+			this.checkScanTime()
+			// 检查登录
+			this.checkLogin()
+
+			log.Println("======================================\r\n\r\n")
+
 		}
 	}()
 	for {
@@ -167,40 +157,28 @@ func (this *handleCron) Run() {
 	}
 }
 
-func RemoveRepeatedElement(arr []string) (newArr []string) {
-	newArr = make([]string, 0)
-	for i := 0; i < len(arr); i++ {
-		repeat := false
-		for j := i + 1; j < len(arr); j++ {
-			if arr[i] == arr[j] {
-				repeat = true
-				break
-			}
+//checkScanTime 检查扫描时间间隔
+func (this *handleCron) checkScanTime() {
+	limitTime := this.conf.GetDuration("qbit_scan_time")
+	if limitTime == 0 {
+		this.conf.Set("qbit_scan_time", "10")
+		err := this.conf.WriteConfig()
+		if err != nil {
+			log.Println("写入配置失败,请注意配置文件权限")
 		}
-		if !repeat {
-			newArr = append(newArr, arr[i])
-		}
+		limitTime = 10
 	}
-	return
+
+	log.Println("扫描完成")
+	log.Println("开始等待下一轮检查 等待", int(limitTime), "s后执行")
+	time.Sleep(time.Second * limitTime)
 }
 
-func ArraySplit(arr []string, splitCount int) [][]string {
-	if len(arr) == 0 || splitCount <= 0 {
-		return nil
+func (this *handleCron) checkLogin() {
+gotoCheckLogin:
+	if service.ServiceCron.CheckLogin() == false {
+		log.Println("登录失败,等待10分钟后重试")
+		time.Sleep(time.Second * 60 * 10)
+		goto gotoCheckLogin
 	}
-	arrLen := int(math.Ceil(float64(len(arr)) / float64(splitCount)))
-	i := 1
-	var ret [][]string
-	for i <= arrLen {
-		// 计算开始裁剪位置
-		left := (i - 1) * splitCount
-		right := left + splitCount
-		// 如果右边限定值超出总数 则修改到最右侧
-		if right > len(arr) {
-			right = len(arr)
-		}
-		ret = append(ret, arr[left:right])
-		i++
-	}
-	return ret
 }

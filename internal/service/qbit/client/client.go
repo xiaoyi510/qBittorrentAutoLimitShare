@@ -65,8 +65,7 @@ func (this *QbitClient) GetHostHeader() string {
 }
 
 func (this *QbitClient) Get(url string, data interface{}) (string, int) {
-	dataMap, _ := json.Marshal(data)
-	fmt.Println(string(dataMap))
+	//dataMap, _ := json.Marshal(data)
 
 	url = this.GetHost() + "/" + url
 	//fmt.Println("[GET] Url:" + url)

@@ -1,6 +1,8 @@
 package service
 
 import (
+	"QbittorrentAutoLimitShare/internal/consts"
+	"QbittorrentAutoLimitShare/internal/model/qbit/sync"
 	"QbittorrentAutoLimitShare/internal/service/qbit"
 	"QbittorrentAutoLimitShare/internal/service/qbit/api"
 	"QbittorrentAutoLimitShare/internal/service/qbit/client"
@@ -8,6 +10,7 @@ import (
 	"errors"
 	"fmt"
 	"github.com/spf13/viper"
+	"log"
 	"net/http"
 	"strings"
 )
@@ -19,15 +22,40 @@ func init() {
 }
 
 type serviceCron struct {
-	client *client.QbitClient
-	conf   *viper.Viper
+	client  *client.QbitClient
+	conf    *viper.Viper
+	IsLogin bool
 }
 
+// Init 初始化服务 并且登录
 func (this *serviceCron) Init() {
 	this.client = qbit.Qbit.Client.Init(this.conf.GetString("qbit_server.url"), this.conf.GetString("qbit_server.port"), this.conf.GetString("qbit_server.ssl") == "1")
+
+	log.Println("初始化完成")
+	log.Println(fmt.Sprintf("配置服务器信息\r\n    Url :%s\r\n    Port:%s", this.conf.GetString("qbit_server.url"), this.conf.GetString("qbit_server.port")))
+	if this.CheckLogin() {
+		log.Println("登录完成\r\n\r\n")
+	}
 }
 
-// 第一次运行 同步所有的数据
+// CheckLogin 检测登录是否有效
+func (this *serviceCron) CheckLogin() bool {
+	log.Println("开始检测Cookie")
+	// 判断缓存是否可用
+	if this.CheckCookie() == false {
+		log.Println("Cookie无效 开始使用账号密码登录")
+		err := this.Login()
+		if err != nil {
+			log.Println("登录失败", err)
+			this.IsLogin = false
+			return false
+		}
+	}
+	this.IsLogin = true
+	return true
+}
+
+// Login 第一次运行 同步所有的数据
 func (this *serviceCron) Login() error {
 	//>> 登录获取Cookie
 	res, ck := this.GetAuth().Login(this.conf.GetString("qbit_server.username"), this.conf.GetString("qbit_server.password"))
@@ -92,4 +120,16 @@ func (this *serviceCron) parseCookie(cookie string) []*http.Cookie {
 }
 func (this *serviceCron) SetCookie(cookie string) {
 	this.client.SetCookie(this.parseCookie(cookie))
+}
+
+// GetTimeForType 获取时间类型对应的时间戳
+func (this *serviceCron) GetTimeForType(timeType int, torrents sync.ApiSyncMaindataTorrents) (tmpTime int) {
+	if timeType == consts.SCAN_TIME_TYPE_AC {
+		tmpTime = torrents.LastActivity
+	} else if timeType == consts.SCAN_TIME_TYPE_ADD {
+		tmpTime = torrents.AddedOn
+	} else {
+		tmpTime = torrents.CompletionOn
+	}
+	return tmpTime
 }
