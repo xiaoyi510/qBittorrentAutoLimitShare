@@ -1,6 +1,7 @@
 package handler
 
 import (
+	"QbittorrentAutoLimitShare/internal/consts"
 	"QbittorrentAutoLimitShare/internal/model/qbit/torrents"
 	"QbittorrentAutoLimitShare/internal/service"
 	"github.com/spf13/viper"
@@ -59,6 +60,12 @@ func (this *handleCron) Run() {
 			trustTrackers := this.conf.Get("trust_trackers").(string)
 			// 获取种子监控最长时间
 			skillMaxCompleteTime := 24 * 60 * 60 * this.conf.GetInt("qbit_skill_max_complete_time")
+			// 获取种子检测时间类型
+			checkTimeType := this.conf.GetInt("qbit_check_time_type")
+			if checkTimeType == 0 {
+				checkTimeType = consts.SCAN_TIME_TYPE_AC
+			}
+
 			// 获取配置的上传限制
 			SeedingTimeLimit := this.conf.GetInt("qbit_upload_time")
 			RatioLimit := this.conf.GetFloat64("qbit_upload_radio")
@@ -76,7 +83,10 @@ func (this *handleCron) Run() {
 
 			// 判断哪些tracker不是信任的
 			for k, v := range s.Trackers {
+				// 判断是否是信任的 tracker
 				hasTrust := false
+
+				// 在配置中循环判断是否有信任的
 				for _, trustUrl := range trustTrackersArr {
 					if strings.Index(k, trustUrl) != -1 && len(trustUrl) > 0 {
 						hasTrust = true
@@ -88,11 +98,25 @@ func (this *handleCron) Run() {
 					//>> 判断 v 中是否已处理分享率
 					//var hashNames string
 					for _, v2 := range v {
-						// 查看种子是否超过监控时间
-						a := int(time.Now().Unix() - int64(skillMaxCompleteTime))
-						if s.Torrents[v2].CompletionOn > a {
-							hashes = append(hashes, v2)
-							//hashNames = hashNames + "\r\n" + s.Torrents[v2].Name
+						// 如果种子未限制比例|时间 并且有需要设置比例 则处理  已手动限制比例则不处理
+						if (s.Torrents[v2].RatioLimit <= 0 && RatioLimit != -1) || (s.Torrents[v2].SeedingTimeLimit <= 0 && SeedingTimeLimit != -1) {
+							// 获取种子最低监控时间
+							minScanTime := int(time.Now().Unix() - int64(skillMaxCompleteTime))
+							// 判断时间类型
+							var tmpTime int
+							if checkTimeType == consts.SCAN_TIME_TYPE_AC {
+								tmpTime = s.Torrents[v2].LastActivity
+							} else if checkTimeType == consts.SCAN_TIME_TYPE_ADD {
+								tmpTime = s.Torrents[v2].AddedOn
+							} else {
+								tmpTime = s.Torrents[v2].CompletionOn
+							}
+
+							if tmpTime > minScanTime {
+								log.Println("种子已加入限制:" + s.Torrents[v2].Name)
+								hashes = append(hashes, v2)
+							}
+
 						}
 					}
 				}
@@ -104,7 +128,7 @@ func (this *handleCron) Run() {
 				// 去重
 				hashes = RemoveRepeatedElement(hashes)
 
-				// 分段处理
+				// 分段处理避免过多
 				list := ArraySplit(hashes, 6)
 
 				for _, v := range list {
