@@ -143,8 +143,8 @@ func (this *handleCron) Run() {
 			}
 
 			// 间隔扫描时间
-			this.checkScanTime()
-			// 检查登录
+			this.checkScanTime(len(hashes))
+			// 检查登录状态是否合法
 			this.checkLogin()
 
 			log.Println("======================================\r\n\r\n")
@@ -158,7 +158,7 @@ func (this *handleCron) Run() {
 }
 
 //checkScanTime 检查扫描时间间隔
-func (this *handleCron) checkScanTime() {
+func (this *handleCron) checkScanTime(setLimitCount int) {
 	limitTime := this.conf.GetDuration("qbit_scan_time")
 	if limitTime == 0 {
 		this.conf.Set("qbit_scan_time", "10")
@@ -169,7 +169,7 @@ func (this *handleCron) checkScanTime() {
 		limitTime = 10
 	}
 
-	log.Println("扫描完成")
+	log.Println("扫描完成 \r\n\t\t共扫描到提交限制分享种子数量:" + strconv.Itoa(setLimitCount) + "个")
 	log.Println("开始等待下一轮检查 等待", int(limitTime), "s后执行")
 	time.Sleep(time.Second * limitTime)
 }
