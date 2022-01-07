@@ -76,7 +76,11 @@ func (this *handleCron) Run() {
 			err, s := service.ServiceCron.GetSync().Maindata()
 			if err != nil {
 				log.Println("获取种子列表失败", err)
-				return
+				// 间隔扫描时间
+				this.checkScanTime(0)
+				// 检查登录状态是否合法
+				this.checkLogin()
+				continue
 			}
 
 			// 定义需要处理的种子列表
@@ -168,8 +172,9 @@ func (this *handleCron) checkScanTime(setLimitCount int) {
 		}
 		limitTime = 10
 	}
-
-	log.Println("扫描完成 \r\n\t\t共扫描到提交限制分享种子数量:" + strconv.Itoa(setLimitCount) + "个")
+	if setLimitCount > 0 {
+		log.Println("扫描完成 \r\n\t\t共扫描到提交限制分享种子数量:" + strconv.Itoa(setLimitCount) + "个")
+	}
 	log.Println("开始等待下一轮检查 等待", int(limitTime), "s后执行")
 	time.Sleep(time.Second * limitTime)
 }
