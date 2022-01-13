@@ -35,6 +35,7 @@ func (this *App) Preferences() (error, *app.ApiAppPreferencesRes) {
 func (this *App) Version() (error, string) {
 	// 调用API进行登录
 	req := app.ApiAppVersionReq{}
+	req.Test = "123"
 	res, _ := this.client.Get("app/version", req)
 	if res == "Forbidden" {
 		return errors.New(res), ""

@@ -65,11 +65,28 @@ func (this *QbitClient) GetHostHeader() string {
 }
 
 func (this *QbitClient) Get(url string, data interface{}) (string, int) {
-	//dataMap, _ := json.Marshal(data)
+	tmpDataMap, _ := json.Marshal(data)
+
+	dataMap := make(map[string]string)
+	err := json.Unmarshal(tmpDataMap, &dataMap)
+	if err != nil {
+		return err.Error(), 0
+	}
+
+	reqData := url2.Values{}
+	for k, v := range dataMap {
+		reqData.Set(k, v)
+	}
 
 	url = this.GetHost() + "/" + url
+	uri, err := url2.ParseRequestURI(url)
+	if err != nil {
+		return "", 0
+	}
+	uri.RawQuery = reqData.Encode()
+
 	//fmt.Println("[GET] Url:" + url)
-	request, err := http.NewRequest("GET", url, nil)
+	request, err := http.NewRequest("GET", uri.String(), nil)
 	if err != nil {
 		return err.Error(), 0
 	}

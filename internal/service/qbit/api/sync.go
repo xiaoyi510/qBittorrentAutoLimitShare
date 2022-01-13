@@ -29,7 +29,7 @@ func (this *Sync) Maindata() (error, *sync.ApiSyncMaindataRes) {
 	var resData sync.ApiSyncMaindataRes
 	err := json.Unmarshal([]byte(res), &resData)
 	if err != nil {
-		log.Println(err.Error())
+		log.Println(err.Error() + res)
 		return err, nil
 	}
 

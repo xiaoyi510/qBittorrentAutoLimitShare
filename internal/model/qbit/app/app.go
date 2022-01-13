@@ -155,6 +155,7 @@ type ApiAppPreferencesRes struct {
 }
 
 type ApiAppVersionReq struct {
+	Test string `json:"test,omitempty"`
 }
 
 type ApiAppWebApiVersionReq struct {
