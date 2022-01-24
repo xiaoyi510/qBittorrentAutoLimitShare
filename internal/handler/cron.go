@@ -55,6 +55,13 @@ func (this *handleCron) Run() {
 			runCount++
 			log.Println("======================================")
 			log.Println("开始扫描 第" + strconv.FormatInt(runCount, 10) + "次")
+			// 判断配置项是否正确
+			if this.conf.Get("trust_trackers") == nil {
+				log.Println("请配置 trust_trackers 20s后重试")
+				log.Println("======================================\r\n\r\n")
+				time.Sleep(20 * time.Second)
+				continue
+			}
 			// 获取信任的tracker列表
 			trustTrackers := this.conf.Get("trust_trackers").(string)
 			// 分割信任的Tracker
