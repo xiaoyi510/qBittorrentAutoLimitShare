@@ -1,0 +1,75 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+    <meta charset="UTF-8">
+    <title>qBit-Auto-{{.title}}</title>
+</head>
+<body>
+<form action="">
+    <p>服务器设置</p>
+    <div>
+        <label>服务地址</label>
+        <input type="text" placeholder="https://xxx.com">
+    </div>
+    <div>
+        <label>服务端口号</label>
+        <input type="text" placeholder="80" value="80">
+    </div>
+    <div>
+        <label>SSL</label>
+        <select>
+            <option value="1">是</option>
+            <option value="2">否</option>
+        </select>
+    </div>
+    <div>
+        <label>服务用户名</label>
+        <input type="text" placeholder="请输入用户名" value="">
+    </div>
+    <div>
+        <label>服务登录密码</label>
+        <input type="text" placeholder="请输入登录密码" value="">
+    </div>
+    <p>基础设置</p>
+    <div>
+        <label>扫描间隔时间</label>
+        <input type="text" name="scan_time" value="60" placeholder="单位(秒)">
+    </div>
+    <div>
+        <label>检查种子时间类型</label>
+        <input type="text" name="check_time_type" value="1" placeholder="1 完成时间 2 添加时间 3 活动时间">
+    </div>
+</form>
+<p>Tracker管理</p>
+<a href="">
+    <button type="button" onclick="addTracker()">添加</button>
+</a>
+<table border="1">
+    <thead>
+    <tr>
+        <td>tracker</td>
+        <td>分享率限制</td>
+        <td>上传时间限制</td>
+        <td>操作</td>
+    </tr>
+    </thead>
+    <tbody>
+    <tr>
+        <td><input type="text" value="pt.btschool.club/announce.php"></td>
+        <td><input value="1"></td>
+        <td><input value="-1"></td>
+        <td>
+            <a href="">删除</a>
+            <a href="">确认修改</a>
+        </td>
+    </tr>
+    </tbody>
+</table>
+
+</body>
+<script>
+    function addTracker() {
+
+    }
+</script>
+</html>

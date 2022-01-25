@@ -6,3 +6,9 @@ const (
 	SCAN_TIME_TYPE_ADD
 	SCAN_TIME_TYPE_COMPLETE
 )
+
+var Sig chan string
+
+func init() {
+	Sig = make(chan string)
+}

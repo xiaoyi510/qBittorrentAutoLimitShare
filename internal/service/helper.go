@@ -7,6 +7,7 @@ var ServiceHelper = &serviceHelper{}
 type serviceHelper struct {
 }
 
+// RemoveRepeatedElement 删除重复成员
 func (s *serviceHelper) RemoveRepeatedElement(arr []string) (newArr []string) {
 	newArr = make([]string, 0)
 	for i := 0; i < len(arr); i++ {
@@ -24,6 +25,7 @@ func (s *serviceHelper) RemoveRepeatedElement(arr []string) (newArr []string) {
 	return
 }
 
+// ArraySplit 数组分割
 func (s *serviceHelper) ArraySplit(arr []string, splitCount int) [][]string {
 	if len(arr) == 0 || splitCount <= 0 {
 		return nil
