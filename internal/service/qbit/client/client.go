@@ -2,6 +2,7 @@ package client
 
 import (
 	"QbittorrentAutoLimitShare/internal/model"
+	"crypto/tls"
 	"encoding/json"
 	"fmt"
 	"io/ioutil"
@@ -9,6 +10,7 @@ import (
 	"net/http/cookiejar"
 	url2 "net/url"
 	"strings"
+	"time"
 )
 
 type QbitClient struct {
@@ -31,10 +33,19 @@ func (this *QbitClient) Init(serverUrl string, serverPort string, isSSL bool) *Q
 		this.conf.ServerPort = serverPort
 	}
 	this.conf.IsSSL = isSSL
+	// 取消SSL证书校验
+	tr := &http.Transport{
+		TLSClientConfig:       &tls.Config{InsecureSkipVerify: true},
+		DisableKeepAlives:     true,
+		TLSHandshakeTimeout:   10 * time.Second,
+		ResponseHeaderTimeout: 30 * time.Second,
+		ExpectContinueTimeout: 10 * time.Second,
+	}
 
 	this.jar, _ = cookiejar.New(&cookiejar.Options{})
 	this.httpClient = &http.Client{
-		Jar: this.jar,
+		Jar:       this.jar,
+		Transport: tr,
 	}
 	return this
 }

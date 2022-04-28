@@ -9,7 +9,6 @@ import (
 func main() {
 	service.ServiceDb.Init()
 	cmd.PublicWeb.Run()
-	cmd.PublicWeb.Run()
 	//cmd.HandleCron.Run()
 	<-consts.Sig
 
