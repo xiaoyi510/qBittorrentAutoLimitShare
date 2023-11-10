@@ -6,15 +6,15 @@
 
 但是其他BT下载网站则需要限制分享率= =不过你的资源够也无所谓
 
-
 ### 配置项
+
 ```yaml
 # 限制上传分享率
 qbit_upload_radio: "1.0"
 # 限制上传分享时间
 qbit_upload_time: "-1"
 # 检测跳过多少天以前的种子
-qbit_skill_max_complete_time: "1"
+qbit_skip_max_complete_time: "1"
 # 检测时间类型 1 活动时间 2 添加时间 3完成时间
 qbit_check_time_type: "1"
 # 扫描间隔时间单位s
@@ -36,47 +36,59 @@ qbit_server:
 trust_trackers: "tracker.hdtime.org/announce.php
 hdfans.org/announce.php
 "
+# 超过这个tracker数量的自动限制分享率 为0 不处理
+tracker_max: "0"
 ```
 
 ### 版本更新
+
+v0.0.2
+
+```yaml
+# 超过这个tracker数量的自动限制分享率 为0 不处理
+tracker_max: "0"
+```
+
 #### v0.0.1
+
 新增配置项
+
 ```yaml
 #检测时间类型 1 活动时间 2 添加时间 3完成时间
 qbit_check_time_type: "1"
 ```
 
-
 ### API 完成度
 
-| 模块          | 接口                                | 完成  |
-|-------------|-----------------------------------|-----|
-| Auth        | auth/login                        | ✔️  |
-|             | auth/logout                       | ✔️  |
+
+| 模块        | 接口                              | 完成 |
+| ----------- | --------------------------------- | ---- |
+| Auth        | auth/login                        | ✔️ |
+|             | auth/logout                       | ✔️ |
 | -           | -                                 | -️  |
-| Application |                                   | ✔️  |
-|             | app/version                       | ✔️  |
-|             | app/webapiVersion                 | ✔️  |
-|             | app/buildInfo                     | ✔️  |
-|             | app/shutdown                      | ✔️  |
-|             | app/preferences                   | ✔️  |
-|             | app/setPreferences                | ✔️  |
-|             | app/defaultSavePath               | ✔️  |
-| Log         |                                   | ✔️  |
-|             | log/main                          | ✔️  |
-|             | log/peers                         | ✔️  |
-| Sync        |                                   | ✔️  |
-|             | sync/maindata                     | ✔️  |
-|             | sync/torrentPeers                 | ✔️  |
-| transfer    |                                   | ❌️  |
-|             | transfer/info                     | ❌️  |
-|             | transfer/speedLimitsMode          | ❌️  |
-|             | transfer/toggleSpeedLimitsMode    | ❌️  |
-|             | transfer/downloadLimit            | ❌️  |
-|             | transfer/setDownloadLimit         | ❌️  |
-|             | transfer/uploadLimit              | ❌️  |
-|             | transfer/setUploadLimit           | ❌️  |
-|             | transfer/banPeers                 | ❌️  |
+| Application |                                   | ✔️ |
+|             | app/version                       | ✔️ |
+|             | app/webapiVersion                 | ✔️ |
+|             | app/buildInfo                     | ✔️ |
+|             | app/shutdown                      | ✔️ |
+|             | app/preferences                   | ✔️ |
+|             | app/setPreferences                | ✔️ |
+|             | app/defaultSavePath               | ✔️ |
+| Log         |                                   | ✔️ |
+|             | log/main                          | ✔️ |
+|             | log/peers                         | ✔️ |
+| Sync        |                                   | ✔️ |
+|             | sync/maindata                     | ✔️ |
+|             | sync/torrentPeers                 | ✔️ |
+| transfer    |                                   | ❌️ |
+|             | transfer/info                     | ❌️ |
+|             | transfer/speedLimitsMode          | ❌️ |
+|             | transfer/toggleSpeedLimitsMode    | ❌️ |
+|             | transfer/downloadLimit            | ❌️ |
+|             | transfer/setDownloadLimit         | ❌️ |
+|             | transfer/uploadLimit              | ❌️ |
+|             | transfer/setUploadLimit           | ❌️ |
+|             | transfer/banPeers                 | ❌️ |
 | torrents    |                                   | ❌   |
 |             | torrents/info                     | ❌   |
 |             | torrents/properties               | ❌   |

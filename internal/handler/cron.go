@@ -4,6 +4,7 @@ import (
 	"QbittorrentAutoLimitShare/internal/consts"
 	"QbittorrentAutoLimitShare/internal/model/qbit/torrents"
 	"QbittorrentAutoLimitShare/internal/service"
+	"github.com/spf13/cast"
 	"github.com/spf13/viper"
 	"log"
 	"os"
@@ -68,7 +69,7 @@ func (this *handleCron) Run() {
 			trustTrackersArr := strings.Split(trustTrackers, " ")
 
 			// 获取种子监控最长时间
-			skillMaxCompleteTime := 24 * 60 * 60 * this.conf.GetInt("qbit_skill_max_complete_time")
+			skillMaxCompleteTime := 24 * 60 * 60 * this.conf.GetInt("qbit_skip_max_complete_time")
 			// 获取种子检测时间类型
 			checkTimeType := this.conf.GetInt("qbit_check_time_type")
 			if checkTimeType == 0 {
@@ -93,6 +94,40 @@ func (this *handleCron) Run() {
 			// 定义需要处理的种子列表
 			var hashes []string
 
+			trustTrackerMax := this.conf.Get("tracker_max")
+			trustTrackerMaxNum := 0
+			if trustTrackerMax != nil {
+				trustTrackerMaxNum = cast.ToInt(trustTrackerMax)
+			}
+
+			trackerTz := make(map[string][]string)
+			if trustTrackerMaxNum > 0 {
+				// 种子tracker最大数量超过限制处理
+				// 整合数据
+				for tracker, bittorrentHashs := range s.Trackers {
+					for _, hash := range bittorrentHashs {
+						trackerTz[hash] = append(trackerTz[hash], tracker)
+					}
+				}
+				for hash, trackers := range trackerTz {
+					if len(trackers) > trustTrackerMaxNum {
+						// 如果种子未限制比例|时间 并且有需要设置比例 则处理  已手动限制比例则不处理
+						if (s.Torrents[hash].RatioLimit <= 0 && RatioLimit != -1) || (s.Torrents[hash].SeedingTimeLimit <= 0 && SeedingTimeLimit != -1) {
+							// 获取种子最低监控时间
+							minScanTime := int(time.Now().Unix() - int64(skillMaxCompleteTime))
+
+							// 获取判断时间
+							tmpTime := service.ServiceCron.GetTimeForType(checkTimeType, s.Torrents[hash])
+							// 判断时间类型
+							if tmpTime > minScanTime {
+								hashes = append(hashes, hash)
+							}
+
+						}
+					}
+				}
+
+			}
 			// 判断哪些tracker不是信任的
 			for k, v := range s.Trackers {
 				// 判断是否是信任的 tracker
@@ -105,7 +140,7 @@ func (this *handleCron) Run() {
 						break
 					}
 				}
-				if !hasTrust {
+				if len(trustTrackersArr) > 0 && !hasTrust {
 					//>> 没有在信任列表
 					//>> 判断 v 中是否已处理分享率
 					for _, v2 := range v {
@@ -168,7 +203,7 @@ func (this *handleCron) Run() {
 	}
 }
 
-//checkScanTime 检查扫描时间间隔
+// checkScanTime 检查扫描时间间隔
 func (this *handleCron) checkScanTime(setLimitCount int) {
 	limitTime := this.conf.GetDuration("qbit_scan_time")
 	if limitTime == 0 {
