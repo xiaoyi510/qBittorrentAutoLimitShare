@@ -9,6 +9,8 @@
 ### 配置项
 
 ```yaml
+# 限制上传速度 0 不限制
+qbit_upload_limit: "1"
 # 限制上传分享率
 qbit_upload_radio: "1.0"
 # 限制上传分享时间
