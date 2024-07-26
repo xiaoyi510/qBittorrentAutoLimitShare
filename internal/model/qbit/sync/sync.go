@@ -49,7 +49,7 @@ type ApiSyncMaindataTorrents struct {
 	Priority          int     `json:"priority"`
 	Progress          float64 `json:"progress"`
 	Ratio             float64 `json:"ratio"`
-	RatioLimit        float32 `json:"ratio_limit"`
+	RatioLimit        float64 `json:"ratio_limit"`
 	SavePath          string  `json:"save_path"`
 	SeedingTime       int     `json:"seeding_time"`
 	SeedingTimeLimit  int     `json:"seeding_time_limit"`

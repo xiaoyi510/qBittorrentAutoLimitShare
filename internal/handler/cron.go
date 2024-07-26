@@ -70,6 +70,7 @@ func (this *handleCron) Run() {
 
 			// 获取种子监控最长时间
 			skillMaxCompleteTime := 24 * 60 * 60 * this.conf.GetInt("qbit_skip_max_complete_time")
+
 			// 获取种子检测时间类型
 			checkTimeType := this.conf.GetInt("qbit_check_time_type")
 			if checkTimeType == 0 {
@@ -79,6 +80,7 @@ func (this *handleCron) Run() {
 			// 获取配置的上传限制
 			SeedingTimeLimit := this.conf.GetInt("qbit_upload_time") // 上传时间
 			RatioLimit := this.conf.GetFloat64("qbit_upload_radio")  // 分享率
+			uploadLimit := this.conf.GetInt("qbit_upload_limit")     // 上传速度
 
 			// 获取种子列表
 			err, s := service.ServiceCron.GetSync().Maindata()
@@ -112,7 +114,7 @@ func (this *handleCron) Run() {
 				for hash, trackers := range trackerTz {
 					if len(trackers) > trustTrackerMaxNum {
 						// 如果种子未限制比例|时间 并且有需要设置比例 则处理  已手动限制比例则不处理
-						if (s.Torrents[hash].RatioLimit <= 0 && RatioLimit != -1) || (s.Torrents[hash].SeedingTimeLimit <= 0 && SeedingTimeLimit != -1) {
+						if (s.Torrents[hash].RatioLimit != RatioLimit && RatioLimit != -1) || (s.Torrents[hash].SeedingTimeLimit != SeedingTimeLimit && SeedingTimeLimit != -1) || (s.Torrents[hash].UpLimit != uploadLimit && uploadLimit != -1) {
 							// 获取种子最低监控时间
 							minScanTime := int(time.Now().Unix() - int64(skillMaxCompleteTime))
 
@@ -175,6 +177,20 @@ func (this *handleCron) Run() {
 					for _, v2 := range v {
 						log.Println(s.Torrents[v2].Name)
 					}
+					// 判断是否需要设置分享速率
+					if uploadLimit > 0 {
+						// 通知设置分享率
+						err, _ := service.ServiceCron.GetTorrents().SetUploadLimit(torrents.ApiTorrentSetUploadLimitReq{
+							Hashes: strings.Join(v, "|"),
+							Limit:  uploadLimit,
+						})
+						if err != nil {
+							log.Println("设置上传速度失败", err.Error())
+						} else {
+							log.Println("设置上传速度成功 共:", len(v))
+						}
+					}
+
 					// 通知设置分享率
 					err, _ := service.ServiceCron.GetTorrents().SetShareLimits(v, torrents.ApiTorrentSetShareLimitsReq{
 						SeedingTimeLimit: SeedingTimeLimit,
