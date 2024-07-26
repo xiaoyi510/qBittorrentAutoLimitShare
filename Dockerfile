@@ -6,13 +6,13 @@ FROM loads/alpine:3.8
 
 ENV WORKDIR  /app
 
-ADD ./dist/qbAuto_linux_amd64/qBittorrentAutoLimitShare $WORKDIR/qBittorrentAutoLimitShare
+ADD ./qbit-auto-limit $WORKDIR/qbit-auto-limit
 ADD ./conf/demo.app.yaml $WORKDIR/conf/app.yaml
 
-RUN chmod +x $WORKDIR/qBittorrentAutoLimitShare
+RUN chmod +x $WORKDIR/qbit-auto-limit
 
 ###############################################################################
 #                                   START
 ###############################################################################
 WORKDIR $WORKDIR
-CMD ./qBittorrentAutoLimitShare
+CMD ./qbit-auto-limit
