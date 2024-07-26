@@ -42,121 +42,27 @@ hdfans.org/announce.php
 tracker_max: "0"
 ```
 
-### 版本更新
+### Docker
+docker 地址:
+https://hub.docker.com/r/xiaoyi510/qbit-auto-limit
 
-v0.0.2
-
-```yaml
-# 超过这个tracker数量的自动限制分享率 为0 不处理
-tracker_max: "0"
+docker-compose.yml
+```
+version: "3.3"
+services:
+  qbit-auto-limit:
+    container_name: qbit-auto-limit
+    environment:
+      - TZ=Asia/Shanghai
+      - HOST_OS=Unraid
+      - HOST_HOSTNAME=Tower
+      - HOST_CONTAINERNAME=qbit-auto-limit-new
+    labels:
+      - net.unraid.docker.managed=dockerman
+    volumes:
+      - /mnt/user/appdata/qbit-auto-limit/conf:/app/conf
+    image: xiaoyi510/qbit-auto-limit:latest
+networks: {}
 ```
 
-#### v0.0.1
-
-新增配置项
-
-```yaml
-#检测时间类型 1 活动时间 2 添加时间 3完成时间
-qbit_check_time_type: "1"
-```
-
-### API 完成度
-
-
-| 模块        | 接口                              | 完成 |
-| ----------- | --------------------------------- | ---- |
-| Auth        | auth/login                        | ✔️ |
-|             | auth/logout                       | ✔️ |
-| -           | -                                 | -️  |
-| Application |                                   | ✔️ |
-|             | app/version                       | ✔️ |
-|             | app/webapiVersion                 | ✔️ |
-|             | app/buildInfo                     | ✔️ |
-|             | app/shutdown                      | ✔️ |
-|             | app/preferences                   | ✔️ |
-|             | app/setPreferences                | ✔️ |
-|             | app/defaultSavePath               | ✔️ |
-| Log         |                                   | ✔️ |
-|             | log/main                          | ✔️ |
-|             | log/peers                         | ✔️ |
-| Sync        |                                   | ✔️ |
-|             | sync/maindata                     | ✔️ |
-|             | sync/torrentPeers                 | ✔️ |
-| transfer    |                                   | ❌️ |
-|             | transfer/info                     | ❌️ |
-|             | transfer/speedLimitsMode          | ❌️ |
-|             | transfer/toggleSpeedLimitsMode    | ❌️ |
-|             | transfer/downloadLimit            | ❌️ |
-|             | transfer/setDownloadLimit         | ❌️ |
-|             | transfer/uploadLimit              | ❌️ |
-|             | transfer/setUploadLimit           | ❌️ |
-|             | transfer/banPeers                 | ❌️ |
-| torrents    |                                   | ❌   |
-|             | torrents/info                     | ❌   |
-|             | torrents/properties               | ❌   |
-|             | torrents/trackers                 | ❌   |
-|             | torrents/webseeds                 | ❌   |
-|             | torrents/files                    | ❌   |
-|             | torrents/pieceStates              | ❌   |
-|             | torrents/pieceHashes              | ❌   |
-|             | torrents/pause                    | ❌   |
-|             | torrents/resume                   | ❌   |
-|             | torrents/delete                   | ❌   |
-|             | torrents/recheck                  | ❌   |
-|             | torrents/reannounce               | ❌   |
-|             | torrents/addTrackers              | ❌   |
-|             | torrents/add                      | ❌   |
-|             | torrents/editTracker              | ❌   |
-|             | torrents/removeTrackers           | ❌   |
-|             | torrents/addPeers                 | ❌   |
-|             | torrents/increasePrio             | ❌   |
-|             | torrents/decreasePrio             | ❌   |
-|             | torrents/topPrio                  | ❌   |
-|             | torrents/bottomPrio               | ❌   |
-|             | torrents/filePrio                 | ❌   |
-|             | torrents/downloadLimit            | ❌   |
-|             | torrents/setDownloadLimit         | ❌   |
-|             | torrents/setShareLimits           | ❌   |
-|             | torrents/uploadLimit              | ❌   |
-|             | torrents/setUploadLimit           | ❌   |
-|             | torrents/setLocation              | ❌   |
-|             | torrents/rename                   | ❌   |
-|             | torrents/setCategory              | ❌   |
-|             | torrents/categories               | ❌   |
-|             | torrents/createCategory           | ❌   |
-|             | torrents/editCategory             | ❌   |
-|             | torrents/removeCategories         | ❌   |
-|             | torrents/addTags                  | ❌   |
-|             | torrents/removeTags               | ❌   |
-|             | torrents/tags                     | ❌   |
-|             | torrents/createTags               | ❌   |
-|             | torrents/deleteTags               | ❌   |
-|             | torrents/setAutoManagement        | ❌   |
-|             | torrents/toggleSequentialDownload | ❌   |
-|             | torrents/toggleFirstLastPiecePrio | ❌   |
-|             | torrents/setForceStart            | ❌   |
-|             | torrents/setSuperSeeding          | ❌   |
-|             | torrents/renameFile               | ❌   |
-|             | torrents/renameFolder             | ❌   |
-| rss         |                                   | ❌   |
-|             | rss/addFolder                     | ❌   |
-|             | rss/addFeed                       | ❌   |
-|             | rss/removeItem                    | ❌   |
-|             | rss/moveItem                      | ❌   |
-|             | rss/items                         | ❌   |
-|             | rss/markAsRead                    | ❌   |
-|             | rss/refreshItem                   | ❌   |
-|             | rss/setRule                       | ❌   |
-|             | rss/renameRule                    | ❌   |
-|             | rss/removeRule                    | ❌   |
-|             | rss/rules                         | ❌   |
-| search      |                                   | ❌   |
-|             | search/start                      | ❌   |
-|             | search/stop                       | ❌   |
-|             | search/status                     | ❌   |
-|             | search/results                    | ❌   |
-|             | search/delete                     | ❌   |
-|             | search/plugins                    | ❌   |
-|             | search/installPlugin              | ❌   |
-|             | search/enablePlugin               | ❌   |
-|             | search/updatePlugins              | ❌   |
+/mnt/user/appdata/qbit-auto-limit/conf 为配置目录
