@@ -66,7 +66,10 @@ func (this *handleCron) Run() {
 			// 获取信任的tracker列表
 			trustTrackers := this.conf.Get("trust_trackers").(string)
 			// 分割信任的Tracker
-			trustTrackersArr := strings.Split(trustTrackers, " ")
+			trustTrackersArr := []string{}
+			if len(trustTrackers) > 0 {
+				trustTrackersArr = strings.Split(trustTrackers, " ")
+			}
 
 			// 获取种子监控最长时间
 			skillMaxCompleteTime := 24 * 60 * 60 * this.conf.GetInt("qbit_skip_max_complete_time")
@@ -113,23 +116,13 @@ func (this *handleCron) Run() {
 				}
 				for hash, trackers := range trackerTz {
 					if len(trackers) > trustTrackerMaxNum {
-						// 如果种子未限制比例|时间 并且有需要设置比例 则处理  已手动限制比例则不处理
-						if (s.Torrents[hash].RatioLimit != RatioLimit && RatioLimit != -1) || (s.Torrents[hash].SeedingTimeLimit != SeedingTimeLimit && SeedingTimeLimit != -1) || (s.Torrents[hash].UpLimit != uploadLimit && uploadLimit != -1) {
-							// 获取种子最低监控时间
-							minScanTime := int(time.Now().Unix() - int64(skillMaxCompleteTime))
+						hashes = append(hashes, hash)
 
-							// 获取判断时间
-							tmpTime := service.ServiceCron.GetTimeForType(checkTimeType, s.Torrents[hash])
-							// 判断时间类型
-							if tmpTime > minScanTime {
-								hashes = append(hashes, hash)
-							}
-
-						}
 					}
 				}
 
 			}
+
 			// 判断哪些tracker不是信任的
 			for k, v := range s.Trackers {
 				// 判断是否是信任的 tracker
@@ -145,32 +138,37 @@ func (this *handleCron) Run() {
 				if len(trustTrackersArr) > 0 && !hasTrust {
 					//>> 没有在信任列表
 					//>> 判断 v 中是否已处理分享率
-					for _, v2 := range v {
-						// 如果种子未限制比例|时间 并且有需要设置比例 则处理  已手动限制比例则不处理
-						if (s.Torrents[v2].RatioLimit <= 0 && RatioLimit != -1) || (s.Torrents[v2].SeedingTimeLimit <= 0 && SeedingTimeLimit != -1) {
-							// 获取种子最低监控时间
-							minScanTime := int(time.Now().Unix() - int64(skillMaxCompleteTime))
+					for _, hash := range v {
+						hashes = append(hashes, hash)
 
-							// 获取判断时间
-							tmpTime := service.ServiceCron.GetTimeForType(checkTimeType, s.Torrents[v2])
-							// 判断时间类型
-							if tmpTime > minScanTime {
-								hashes = append(hashes, v2)
-							}
-
-						}
 					}
 				}
 
 			}
 
-			//>> 通知设置分享率
-			if len(hashes) > 0 {
-				// 去重
-				hashes = service.ServiceHelper.RemoveRepeatedElement(hashes)
+			hashesChecked := []string{}
+			// 去重
+			hashes = service.ServiceHelper.RemoveRepeatedElement(hashes)
+			for _, hash := range hashes {
+				// 如果种子未限制比例|时间 并且有需要设置比例 则处理  已手动限制比例则不处理
+				if (s.Torrents[hash].RatioLimit != RatioLimit && RatioLimit != -1) || (s.Torrents[hash].SeedingTimeLimit != SeedingTimeLimit && SeedingTimeLimit != -1) || (s.Torrents[hash].UpLimit != uploadLimit && uploadLimit != 0) {
+					// 获取种子最低监控时间
+					minScanTime := int(time.Now().Unix() - int64(skillMaxCompleteTime))
 
+					// 获取判断时间
+					tmpTime := service.ServiceCron.GetTimeForType(checkTimeType, s.Torrents[hash])
+					// 判断时间类型
+					if tmpTime > minScanTime {
+						hashesChecked = append(hashesChecked, hash)
+					}
+
+				}
+			}
+
+			//>> 通知设置分享率
+			if len(hashesChecked) > 0 {
 				// 分段处理避免过多
-				list := service.ServiceHelper.ArraySplit(hashes, 6)
+				list := service.ServiceHelper.ArraySplit(hashesChecked, 6)
 
 				for _, v := range list {
 					log.Println("种子已加入分享限制:")
